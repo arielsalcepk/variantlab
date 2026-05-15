@@ -445,7 +445,7 @@ GEM
       sprockets-rails
       tilt
     securerandom (0.4.1)
-    selenium-webdriver (4.43.0)
+    selenium-webdriver (4.44.0)
       base64 (~> 0.2)
       logger (~> 1.4)
       rexml (~> 3.2, >= 3.2.5)
@@ -804,7 +804,7 @@ CHECKSUMS
   sassc (2.4.0) sha256=4c60a2b0a3b36685c83b80d5789401c2f678c1652e3288315a1551d811d9f83e
   sassc-rails (2.1.2) sha256=5f4fdf3881fc9bdc8e856ffbd9850d70a2878866feae8114aa45996179952db5
   securerandom (0.4.1) sha256=cc5193d414a4341b6e225f0cb4446aceca8e50d5e1888743fac16987638ea0b1
-  selenium-webdriver (4.43.0) sha256=a634377b964b701c6ac0a009ce3a08fa34ec1e1e7fe9a6d57e3088d14529a65c
+  selenium-webdriver (4.44.0) sha256=6f1df072529af369589c46f0e01132952aabb250cfd683c274d74dc1eb5d8477
   solidus (4.7.0) sha256=78f3601e65bfb477f618c34d066cd1cd62eb1d2043e4bf597c14e2b5249a73b3
   solidus_admin (0.4.0) sha256=e232f0c0ff20184eaeaab0867e958e0c1f73009b73ffb6bded8242e9ade432a3
   solidus_api (4.7.0) sha256=a98557ec294ab771645d666d489c2cfb13a090aa2273796ab2654f5caae0bab7
