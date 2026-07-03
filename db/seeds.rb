@@ -187,3 +187,80 @@ arcbook_studio.option_types << [ processor, ram, storage, color ]
 end
 
 puts "Done! Created 3 products with variants."
+
+# ============================================================
+# ATTACH PLACEHOLDER IMAGES
+# ============================================================
+puts "Attaching images..."
+
+require "tmpdir"
+
+image_configs = {
+  "ArcBook Pro" => "1e293b",
+  "ArcBook Air" => "0f172a",
+  "ArcBook Studio" => "64748b"
+}
+
+Spree::Product.all.each do |product|
+  color_hex = image_configs[product.name]
+  next unless color_hex
+
+  begin
+    # Create a temporary PNG file with the specified color
+    temp_dir = Dir.tmpdir
+    temp_path = File.join(temp_dir, "#{product.slug}.png")
+
+    # Generate a minimal valid PNG (1x1 pixel)
+    r = color_hex[0..1].to_i(16)
+    g = color_hex[2..3].to_i(16)
+    b = color_hex[4..5].to_i(16)
+
+    # PNG header + IHDR chunk (1x1 image) + IDAT chunk + IEND
+    png_data = [
+      0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A,  # PNG signature
+      0x00, 0x00, 0x00, 0x0D,                            # IHDR chunk size
+      0x49, 0x48, 0x44, 0x52,                            # IHDR
+      0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01,  # 1x1 dimensions
+      0x08, 0x02, 0x00, 0x00, 0x00,                      # 8-bit RGB
+      0x90, 0x77, 0x53, 0xDE,                            # CRC
+      0x00, 0x00, 0x00, 0x0C,                            # IDAT chunk size
+      0x49, 0x44, 0x41, 0x54,                            # IDAT
+      0x08, 0xD7, 0x63,                                  # Compressed data start
+      r, g, b, 0x00, 0x00, 0x01, 0x00, 0x01,            # RGB pixel data
+      0x2B, 0xDC, 0x28, 0x2D,                            # CRC
+      0x00, 0x00, 0x00, 0x00,                            # IEND chunk size
+      0x49, 0x45, 0x4E, 0x44,                            # IEND
+      0xAE, 0x42, 0x60, 0x82                             # CRC
+    ].pack("C*")
+
+    File.write(temp_path, png_data, mode: "wb")
+
+    # Attach the image
+    image = Spree::Image.new(viewable: product.master)
+    image.attachment.attach(
+      io: File.open(temp_path, "rb"),
+      filename: "#{product.slug}.png",
+      content_type: "image/png"
+    )
+    image.save!
+
+    File.delete(temp_path) rescue nil
+
+    puts "✓ Added image to #{product.name}"
+  rescue => e
+    puts "✗ Failed to add image to #{product.name}: #{e.message}"
+  end
+end
+
+puts "Image attachment complete!"
+
+# ============================================================
+# CONFIGURE STORE
+# ============================================================
+puts "Configuring store..."
+store = Spree::Store.default
+store.update!(
+  name: "VariantLab",
+  url: "localhost:3000"
+)
+puts "✓ Store name set to VariantLab"

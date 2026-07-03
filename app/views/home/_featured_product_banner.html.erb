@@ -1,14 +1,23 @@
-<section class="relative my-4 w-full lg:my-12 bg-red-500">
-  <div class="wrapper-mobile-fullwidth">
-    <%= render(ImageComponent.new(
-      image: product.gallery.images.last,
-      size: :full,
-      class: 'w-full object-cover aspect-square md:aspect-auto'
-    )) %>
-    <div class="absolute bottom-0 left-0 right-0 text-center pb-14">
-      <span class="rounded-full px-3 py-1 bg-white text-sm text-black mb-2">New</span>
-      <div class="text-h3 font-serif-md mb-6 text-white md:mb-9 md:text-h2.5"><%= product.name %></div>
-      <%= render "shared/call_to_action", { label: "Shop Now", type: 'secondary', url: product } %>
+<% if product %>
+  <section class="wrapper my-8 lg:my-12">
+    <div class="relative overflow-hidden rounded-[2rem] bg-slate-900">
+      <% banner_image = product.gallery.images.last || product.gallery.images.first %>
+      <%= render(ImageComponent.new(
+        image: banner_image,
+        size: :full,
+        class: 'w-full h-[400px] sm:h-[520px] object-cover',
+      )) %>
+
+      <div class="absolute inset-0 bg-gradient-to-t from-slate-950/95 via-slate-950/40 to-transparent"></div>
+
+      <div class="absolute inset-x-0 bottom-0 p-8 sm:p-12">
+        <span class="inline-flex rounded-full bg-white/90 px-4 py-2 text-xs uppercase tracking-[0.3em] text-slate-950">New arrival</span>
+        <h2 class="mt-5 text-4xl font-serif tracking-tight text-white sm:text-5xl"><%= product.name %></h2>
+        <p class="mt-4 max-w-2xl text-base leading-7 text-slate-200"><%= product.description.to_s.truncate(140) %></p>
+        <div class="mt-8">
+          <%= render "shared/call_to_action", { label: "Shop now", type: 'secondary', url: product } %>
+        </div>
+      </div>
     </div>
-  </div>
-</section>
+  </section>
+<% end %>
