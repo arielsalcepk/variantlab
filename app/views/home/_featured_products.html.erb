@@ -1,14 +1,28 @@
 <% if products.present? %>
-  <section class="wrapper pt-4 pb-10">
-    <div class="grid gap-4 lg:grid-cols-[1.5fr_1fr]">
-      <div>
-        <%= render 'products/featured_product_card', { product: products[0], size: :big } %>
+  <section class="wrapper py-10 lg:py-16">
+    <div class="space-y-10">
+      <div class="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
+        <div class="max-w-2xl">
+          <p class="text-sm uppercase tracking-[0.3em] text-slate-400">Featured collection</p>
+          <h2 class="mt-3 text-3xl font-serif tracking-tight text-slate-950 sm:text-4xl">Explore the ArcBook lineup.</h2>
+          <p class="mt-4 text-base leading-7 text-slate-600">Hover over products to preview details, then tap any card to view the full configuration and checkout options.</p>
+        </div>
+
+        <div class="flex-shrink-0">
+          <%= render "shared/call_to_action", { label: "View all products", type: 'secondary', url: products_path } %>
+        </div>
       </div>
 
-      <div class="grid gap-4">
-        <% products.drop(1).each do |product| %>
-          <%= render 'products/featured_product_card', { product: product, size: :small } %>
-        <% end %>
+      <div class="grid gap-4 lg:grid-cols-[1.5fr_1fr]">
+        <div>
+          <%= render 'products/featured_product_card', { product: products[0], size: :big } %>
+        </div>
+
+        <div class="grid gap-4">
+          <% products.drop(1).each do |product| %>
+            <%= render 'products/featured_product_card', { product: product, size: :small } %>
+          <% end %>
+        </div>
       </div>
     </div>
   </section>
