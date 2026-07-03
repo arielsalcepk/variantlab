@@ -4,8 +4,8 @@
   <section class="wrapper py-12 md:py-16 lg:py-24">
     <div class="grid gap-12 lg:grid-cols-[1.1fr_0.9fr] lg:items-start">
       <div class="space-y-6 max-w-2xl">
-        <h1 class="text-4xl md:text-5xl font-serif tracking-tight text-slate-950">Precision laptops built for modern creators.</h1>
-        <p class="text-base leading-8 text-slate-600">Compare compact, balanced, and studio machines with a clear workflow-first approach. Everything is engineered to help you configure the right setup fast.</p>
+        <h1 class="text-4xl md:text-5xl font-serif tracking-tight text-slate-950 dark:text-sand">Precision laptops built for modern creators.</h1>
+        <p class="text-base leading-8 text-slate-600 dark:text-slate-400">Compare compact, balanced, and studio machines with a clear workflow-first approach. Everything is engineered to help you configure the right setup fast.</p>
 
         <div class="flex flex-col sm:flex-row sm:items-center sm:gap-4">
           <%= render "shared/call_to_action", { label: "Explore #{featured_product.name}", url: product_path(featured_product), type: 'primary', additional_classes: 'bg-slate-950 text-white hover:bg-slate-800' } %>
@@ -22,16 +22,16 @@
             )) %>
           </div>
           <div class="p-8">
-            <h2 class="text-3xl font-serif text-slate-950"><%= featured_product.name %></h2>
-            <p class="mt-4 text-base leading-7 text-slate-600"><%= featured_product.description.to_s.truncate(130) %></p>
+            <h2 class="text-3xl font-serif text-slate-950 dark:text-sand"><%= featured_product.name %></h2>
+            <p class="mt-4 text-base leading-7 text-slate-600 dark:text-slate-400"><%= featured_product.description.to_s.truncate(130) %></p>
             <div class="mt-8 grid gap-4 sm:grid-cols-2">
               <div>
-                <p class="text-sm text-slate-500">Starting price</p>
-                <p class="mt-2 text-lg font-semibold text-slate-950"><%= featured_product.display_price %></p>
+                <p class="text-sm text-slate-500 dark:text-slate-400">Starting price</p>
+                <p class="mt-2 text-lg font-semibold text-slate-950 dark:text-sand"><%= featured_product.display_price %></p>
               </div>
               <div>
-                <p class="text-sm text-slate-500">Designed for</p>
-                <p class="mt-2 text-lg font-semibold text-slate-950">Lightweight performance</p>
+                <p class="text-sm text-slate-500 dark:text-slate-400">Designed for</p>
+                <p class="mt-2 text-lg font-semibold text-slate-950 dark:text-sand">Lightweight performance</p>
               </div>
             </div>
           </div>
@@ -45,8 +45,8 @@
   <section class="wrapper pb-16">
     <div class="space-y-6 md:space-y-8 mb-10">
       <div class="max-w-3xl">
-        <h2 class="text-3xl font-serif tracking-tight text-slate-950">The ArcBook lineup, simplified.</h2>
-        <p class="mt-3 text-sm leading-7 text-slate-600">Three models with distinct strengths, each designed to fit a specific workflow and price point.</p>
+        <h2 class="text-3xl font-serif tracking-tight text-slate-950 dark:text-sand">The ArcBook lineup, simplified.</h2>
+        <p class="mt-3 text-sm leading-7 text-slate-600 dark:text-slate-400">Three models with distinct strengths, each designed to fit a specific workflow and price point.</p>
       </div>
     </div>
 
@@ -69,9 +69,9 @@
         { title: "ArcBook Studio", subtitle: "Studio-grade power", detail: "16\" performance for creative workloads, from $1,999" }
       ].each do |item| %>
         <div class="rounded-3xl border border-slate-200 bg-slate-50 p-6">
-          <p class="text-sm font-semibold text-slate-900"><%= item[:title] %></p>
-          <h3 class="mt-3 text-xl font-semibold text-slate-950"><%= item[:subtitle] %></h3>
-          <p class="mt-3 text-sm leading-6 text-slate-600"><%= item[:detail] %></p>
+          <p class="text-sm font-semibold text-slate-900 dark:text-slate-900"><%= item[:title] %></p>
+          <h3 class="mt-3 text-xl font-semibold text-slate-900 dark:text-slate-900"><%= item[:subtitle] %></h3>
+          <p class="mt-3 text-sm leading-6 text-slate-600 dark:text-slate-400"><%= item[:detail] %></p>
         </div>
       <% end %>
     </div>
