@@ -28,7 +28,7 @@
   <body class="<%= body_class %>" id="<%= @body_id || 'default' %>" data-turbo="false"  data-controller="drawer">
     <div class="min-h-screen grid grid-rows-[auto_1fr_auto]">
       <%= render 'layouts/header', taxons: @taxons, taxon: @taxon %>
-      <main>
+      <main class="min-w-full">
         <%= render BreadcrumbsComponent.new(
           taxon: @product&.primary_taxon || @taxon,
           item_classes: 'text-body-xs text-gray-500',

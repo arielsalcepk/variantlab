@@ -187,3 +187,103 @@ arcbook_studio.option_types << [ processor, ram, storage, color ]
 end
 
 puts "Done! Created 3 products with variants."
+
+# ============================================================
+# GENERATED PRODUCT MOCKUP IMAGES
+# ============================================================
+# Draws a simple flat-design "laptop hero shot" per product (screen bezel,
+# glowing display, keyboard deck, trackpad, soft shadow) instead of a solid
+# color swatch. Replaces the old hand-rolled 1x1 PNG byte construction.
+require "chunky_png"
+
+def generate_laptop_mockup_png(hex_color, width: 800, height: 800)
+  image = ChunkyPNG::Image.new(width, height, ChunkyPNG::Color::TRANSPARENT)
+
+  base = ChunkyPNG::Color.from_hex(hex_color)
+  r, g, b = ChunkyPNG::Color.r(base), ChunkyPNG::Color.g(base), ChunkyPNG::Color.b(base)
+  lighten = ->(amt) { ChunkyPNG::Color.rgb([ r + amt, 255 ].min, [ g + amt, 255 ].min, [ b + amt, 255 ].min) }
+  darken  = ->(amt) { ChunkyPNG::Color.rgb([ r - amt, 0 ].max, [ g - amt, 0 ].max, [ b - amt, 0 ].max) }
+
+  # screen bezel + display — fills most of the frame width, minimal top margin
+  bx0, by0 = (width * 0.08).to_i, (height * 0.04).to_i
+  bx1, by1 = (width * 0.92).to_i, (height * 0.58).to_i
+  image.rect(bx0, by0, bx1, by1, darken.call(30), base)
+
+  inset = (width * 0.015).to_i
+  image.rect(bx0 + inset, by0 + inset, bx1 - inset, by1 - inset, ChunkyPNG::Color::TRANSPARENT, lighten.call(20))
+  image.rect(bx0 + inset, by0 + inset, bx1 - inset, by0 + inset + (height * 0.05).to_i,
+             ChunkyPNG::Color::TRANSPARENT, lighten.call(55))
+
+  # webcam dot + hinge line
+  image.circle(((bx0 + bx1) / 2), by0 + (height * 0.015).to_i, 3, darken.call(60), darken.call(60))
+  image.line(bx0, by1 + 4, bx1, by1 + 4, darken.call(50))
+
+  # keyboard deck
+  deck_top    = by1 + (height * 0.015).to_i
+  deck_bottom = (height * 0.88).to_i
+  points = [
+    (width * 0.02).to_i, deck_bottom,
+    (width * 0.98).to_i, deck_bottom,
+    (width * 0.84).to_i, deck_top,
+    (width * 0.16).to_i, deck_top
+  ]
+  image.polygon(points, darken.call(20), ChunkyPNG::Color.from_hex("#d4d4d8"))
+
+  # trackpad
+  tp_w, tp_h = (width * 0.20).to_i, (height * 0.045).to_i
+  tp_x0 = (width - tp_w) / 2
+  tp_y0 = deck_bottom - tp_h - (height * 0.015).to_i
+  image.rect(tp_x0, tp_y0, tp_x0 + tp_w, tp_y0 + tp_h, ChunkyPNG::Color::TRANSPARENT, ChunkyPNG::Color.from_hex("#b8b8bd"))
+
+  # soft contact shadow directly under the base — grounds the laptop instead of it reading as a flat cutout
+  (0..24).each do |dy|
+    alpha = (90 * (1 - dy / 24.0)).to_i
+    y = deck_bottom + 2 + dy
+    next if y >= height
+    image.line((width * 0.08).to_i, y, (width * 0.92).to_i, y, ChunkyPNG::Color.rgba(0, 0, 0, alpha))
+  end
+
+  image
+end
+
+puts "Attaching images..."
+
+image_configs = {
+  "ArcBook Pro" => "1e293b",
+  "ArcBook Air" => "0f172a",
+  "ArcBook Studio" => "64748b"
+}
+
+Spree::Product.all.each do |product|
+  color_hex = image_configs[product.name]
+  next unless color_hex
+
+  begin
+    png = generate_laptop_mockup_png("##{color_hex}")
+
+    image = Spree::Image.new(viewable: product.master)
+    image.attachment.attach(
+      io: StringIO.new(png.to_blob),
+      filename: "#{product.slug}.png",
+      content_type: "image/png"
+    )
+    image.save!
+
+    puts "✓ Added image to #{product.name}"
+  rescue => e
+    puts "✗ Failed to add image to #{product.name}: #{e.message}"
+  end
+end
+
+puts "Image attachment complete!"
+
+# ============================================================
+# CONFIGURE STORE
+# ============================================================
+puts "Configuring store..."
+store = Spree::Store.default
+store.update!(
+  name: "VariantLab",
+  url: "localhost:3000"
+)
+puts "✓ Store name set to VariantLab"
