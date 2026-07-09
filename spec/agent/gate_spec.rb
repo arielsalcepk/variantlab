@@ -20,7 +20,10 @@ RSpec.describe Agent::Gate do
     # an internal fast path that bypasses Ruby method dispatch, so
     # `allow($stdout).to receive(:puts)` silently fails to intercept it.
     # A StringIO has no such fast path, so swapping the global reliably
-    # swallows the gate's prompt output.
+    # swallows the gate's prompt output. The "prints a loud banner" test
+    # below uses RSpec's own `output(...).to_stdout` matcher, which does
+    # its own independent swap-and-restore around just its block, so it
+    # composes fine nested inside this one.
     original_stdout = $stdout
     $stdout = StringIO.new
     begin
@@ -36,6 +39,16 @@ RSpec.describe Agent::Gate do
       expect($stdin).not_to receive(:gets)
 
       expect(described_class.confirm("write_file", { "path" => "x" })).to be(true)
+    end
+
+    it "prints a loud, unmissable banner when auto-approving" do
+      ENV["AGENT_AUTO_APPROVE"] = "1"
+
+      # RSpec's `to_stdout` matcher swaps in its own StringIO for the
+      # duration of this block, so the top-level `before` hook's stub
+      # (applied to the real $stdout) doesn't suppress this capture.
+      expect { described_class.confirm("write_file", { "path" => "x" }) }
+        .to output(/AGENT_AUTO_APPROVE=1 is set - auto-approving WITHOUT confirmation/).to_stdout
     end
 
     it "prompts and approves when the human answers y" do

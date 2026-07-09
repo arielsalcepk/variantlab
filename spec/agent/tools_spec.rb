@@ -130,7 +130,7 @@ RSpec.describe Agent::Tools do
       expect(described_class.destructive?("run_command", { "command" => "git status\nrm -rf app" })).to be(true)
     end
 
-    it "does not match a command that merely starts with the same words)" do
+    it "does not match a command that merely starts with the same words" do
       expect(described_class.destructive?("run_command", { "command" => "git statusfoo" })).to be(true)
     end
 
@@ -140,6 +140,82 @@ RSpec.describe Agent::Tools do
 
     it "treats an unrecognized tool name as non-destructive by default" do
       expect(described_class.destructive?("read_file", { "path" => "x" })).to be(false)
+    end
+  end
+
+  describe "write protections" do
+    it "refuses to overwrite the agent's own safety code, unconditionally" do
+      %w[lib/agent/gate.rb lib/agent/tools.rb lib/agent/client.rb lib/agent/runner.rb bin/agent CLAUDE.md].each do |p|
+        result = described_class.write_file(path: p, content: "compromised")
+        expect(result).to match(/^ERROR: refusing to write to a protected path/), "expected #{p} to be protected"
+      end
+    end
+
+    it "refuses to overwrite files that look like secrets/credentials" do
+      %w[.env .env.production config/master.key config/credentials.yml.enc id_rsa .secrets/anthropic_key].each do |p|
+        target = "#{sandbox_rel}/#{p}"
+        result = described_class.write_file(path: target, content: "leaked")
+        expect(result).to match(/^ERROR: refusing to write to a protected path/), "expected #{p} to be protected"
+      end
+    end
+
+    it "still allows writing an ordinary application file" do
+      result = described_class.write_file(path: "#{sandbox_rel}/app/models/widget.rb", content: "class Widget; end")
+      expect(result).to match(/^OK: wrote/)
+    end
+  end
+
+  describe "read protections" do
+    it "refuses to read a file that looks like a secret/credential, and never surfaces its content" do
+      path = "#{sandbox_rel}/.env"
+      File.write(File.join(sandbox_abs, ".env"), "ANTHROPIC_API_KEY=sk-secret-value")
+
+      result = described_class.read_file(path: path)
+
+      expect(result).to match(/^ERROR: refusing to read/)
+      expect(result).not_to include("sk-secret-value")
+    end
+
+    it "still allows reading an ordinary application file" do
+      described_class.write_file(path: "#{sandbox_rel}/app/models/widget.rb", content: "class Widget; end")
+      expect(described_class.read_file(path: "#{sandbox_rel}/app/models/widget.rb")).to eq("class Widget; end")
+    end
+  end
+
+  describe "catastrophic command denylist" do
+    it "refuses rm -rf / unconditionally, without executing it" do
+      result = described_class.run_command(command: "rm -rf /")
+      expect(result).to match(/^ERROR: refusing to run this command under any circumstances/)
+    end
+
+    it "refuses rm -rf ~ unconditionally" do
+      result = described_class.run_command(command: "rm -rf ~")
+      expect(result).to match(/^ERROR: refusing to run this command under any circumstances/)
+    end
+
+    it "refuses an obvious fork bomb pattern" do
+      result = described_class.run_command(command: ":(){ :|:& };:")
+      expect(result).to match(/^ERROR: refusing to run this command under any circumstances/)
+    end
+
+    it "still allows an ordinary, scoped rm within the project" do
+      path = "#{sandbox_rel}/deleteme.txt"
+      described_class.write_file(path: path, content: "x")
+      result = described_class.run_command(command: "rm #{path}")
+      expect(result).to include("exit=0")
+    end
+  end
+
+  describe "command timeout" do
+    it "kills a command that runs longer than the timeout and reports it" do
+      result = described_class.run_command(command: "sleep 5", timeout: 1)
+      expect(result).to match(/^ERROR: command timed out after 1s/)
+    end
+
+    it "does not affect a command that finishes well within the timeout" do
+      result = described_class.run_command(command: "echo quick", timeout: 5)
+      expect(result).to include("exit=0")
+      expect(result).to include("quick")
     end
   end
 
