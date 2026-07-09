@@ -1,0 +1,53 @@
+name: RSpec
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    # Rails/Solidus needs a real Postgres to boot against, even for the
+    # agent specs alone, since loading the Rails environment touches the
+    # database connection.
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      RAILS_ENV: test
+      DATABASE_URL: postgres://postgres:postgres@localhost:5432/variantlab_test
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          # Reads the Ruby version from .ruby-version at the repo root.
+          # If that file doesn't exist yet, replace this with an explicit
+          # version, e.g. ruby-version: '3.2.2'
+          ruby-version: .ruby-version
+          bundler-cache: true # runs `bundle install` and caches gems
+
+      - name: Set up test database
+        run: |
+          bin/rails db:create
+          bin/rails db:schema:load
+
+      - name: Run RSpec
+        run: bundle exec rspec
