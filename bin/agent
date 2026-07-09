@@ -1,0 +1,32 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require_relative "../lib/agent/client"
+require_relative "../lib/agent/tools"
+require_relative "../lib/agent/gate"
+require_relative "../lib/agent/runner"
+
+task = ARGV.join(" ")
+if task.strip.empty?
+  warn 'Usage: bin/agent "<task description>"'
+  exit 1
+end
+
+max_iterations = Integer(ENV.fetch("AGENT_MAX_ITERATIONS", Agent::Runner::DEFAULT_MAX_ITERATIONS.to_s))
+claude_md_path = File.expand_path("../CLAUDE.md", __dir__)
+
+system_prompt = Agent::Runner.build_system_prompt(
+  claude_md_path: claude_md_path,
+  max_iterations: max_iterations
+)
+
+client = Agent::Client.new
+runner = Agent::Runner.new(client: client, system_prompt: system_prompt, max_iterations: max_iterations)
+
+puts "TASK: #{task}\n\n"
+
+result = runner.run(task)
+
+puts "\nDone. (status: #{result.status})"
+
+exit 1 if result.status == :api_error
